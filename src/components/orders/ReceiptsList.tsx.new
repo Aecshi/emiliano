@@ -1,0 +1,376 @@
+import React, { useState, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Search, Printer, Info, X, Clock, CreditCard, Receipt } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
+
+const ReceiptsList = () => {
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const printReceiptRef = useRef(null);
+  const { toast } = useToast();
+  
+  // Mock data for receipts
+  const receipts = [
+    { 
+      id: 'R-001', 
+      table: 'Table 1', 
+      items: [
+        { name: 'Caesar Salad', price: 449.50, qty: 2 },
+        { name: 'Spaghetti Carbonara', price: 749.50, qty: 1 },
+        { name: 'Tiramisu', price: 349.50, qty: 1 }
+      ], 
+      date: '2023-04-03', 
+      time: '14:30', 
+      total: 1998.00,
+      paymentMethod: 'Credit Card',
+      status: 'Completed'
+    },
+    { 
+      id: 'R-002', 
+      table: 'Table 6', 
+      items: [
+        { name: 'Margherita Pizza', price: 649.50, qty: 1 },
+        { name: 'Caprese Salad', price: 399.50, qty: 1 }
+      ], 
+      date: '2023-04-03', 
+      time: '12:45', 
+      total: 1049.00,
+      paymentMethod: 'Cash',
+      status: 'Completed'
+    },
+    { 
+      id: 'R-003', 
+      table: 'Table 2', 
+      items: [
+        { name: 'Grilled Salmon', price: 949.50, qty: 2 },
+        { name: 'House Wine', price: 349.50, qty: 2 }
+      ], 
+      date: '2023-04-02', 
+      time: '19:15', 
+      total: 2598.00,
+      paymentMethod: 'Credit Card',
+      status: 'Completed'
+    },
+  ];
+
+  // Function to handle printing a receipt
+  const handlePrint = (receipt) => {
+    setSelectedReceipt(receipt);
+    setTimeout(() => {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Receipt #${receipt.id}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+              body {
+                font-family: 'Inter', sans-serif;
+                margin: 0;
+                padding: 0;
+                background: white;
+                width: 80mm;
+                margin: 0 auto;
+              }
+              .receipt {
+                padding: 10px 5px;
+              }
+              .receipt-header {
+                text-align: center;
+                margin-bottom: 15px;
+              }
+              .restaurant-name {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 3px;
+              }
+              .receipt-title {
+                font-size: 14px;
+                margin-bottom: 10px;
+              }
+              .receipt-id {
+                font-size: 12px;
+                margin-bottom: 5px;
+              }
+              .receipt-info {
+                font-size: 12px;
+                margin-bottom: 10px;
+              }
+              .divider {
+                border-top: 1px dashed #ccc;
+                margin: 10px 0;
+              }
+              .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+              }
+              .items-table th {
+                text-align: left;
+                padding: 3px 0;
+              }
+              .items-table td {
+                padding: 3px 0;
+              }
+              .price {
+                text-align: right;
+              }
+              .total-row {
+                font-weight: bold;
+              }
+              .receipt-footer {
+                text-align: center;
+                font-size: 10px;
+                margin-top: 20px;
+              }
+              .contact-info {
+                font-size: 10px;
+                text-align: center;
+                margin-top: 5px;
+              }
+              @media print {
+                body {
+                  width: 80mm;
+                  margin: 0;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="receipt">
+              <div class="receipt-header">
+                <div class="restaurant-name">Emiliano Restaurant</div>
+                <div class="receipt-title">Official Receipt</div>
+                <div class="receipt-id">Receipt #${receipt.id}</div>
+                <div class="receipt-info">
+                  ${receipt.date} | ${receipt.time}<br>
+                  ${receipt.table}
+                </div>
+              </div>
+              
+              <div class="divider"></div>
+              
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th class="price">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${receipt.items.map(item => `
+                    <tr>
+                      <td>${item.qty}x ${item.name}</td>
+                      <td class="price">₱${(item.price * item.qty).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                  
+                  <tr><td colspan="2"><div class="divider"></div></td></tr>
+                  
+                  <tr class="total-row">
+                    <td>Total</td>
+                    <td class="price">₱${receipt.total.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>Payment Method</td>
+                    <td class="price">${receipt.paymentMethod}</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <div class="divider"></div>
+              
+              <div class="receipt-footer">
+                Thank you for dining with us!
+              </div>
+              <div class="contact-info">
+                www.emilianorestaurant.com | (02) 123-4567
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      
+      toast({
+        title: "Receipt Printing",
+        description: `Receipt #${receipt.id} sent to printer.`,
+      });
+    }, 100);
+  };
+
+  // Function to handle viewing receipt details
+  const handleViewDetails = (receipt) => {
+    setSelectedReceipt(receipt);
+    setDetailsOpen(true);
+  };
+
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Receipt History</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <input 
+              type="text"
+              placeholder="Search receipts..."
+              className="pl-9 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-restaurant-primary focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {receipts.map((receipt) => (
+          <Card key={receipt.id} className="overflow-hidden border-l-4 border-l-restaurant-primary">
+            <CardHeader className="p-4 pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-semibold">Receipt #{receipt.id}</CardTitle>
+                <span className="text-sm font-medium bg-restaurant-success/10 text-restaurant-success py-1 px-2 rounded-full">
+                  {receipt.status}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>{receipt.table}</span>
+                <span>{receipt.date} | {receipt.time}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 pt-2">
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Items</span>
+                  <span className="font-medium">Amount</span>
+                </div>
+                <Separator />
+                {receipt.items.map((item, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{item.qty}x {item.name}</span>
+                    <span>₱{(item.price * item.qty).toFixed(2)}</span>
+                  </div>
+                ))}
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Total</span>
+                  <span>₱{receipt.total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Payment Method</span>
+                  <span>{receipt.paymentMethod}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => handlePrint(receipt)}
+                >
+                  <Printer className="h-4 w-4 mr-2" /> Print
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => handleViewDetails(receipt)}
+                >
+                  <Info className="h-4 w-4 mr-2" /> View Details
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {selectedReceipt && (
+        <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl flex items-center">
+                  <Receipt className="h-5 w-5 mr-2 text-restaurant-primary" />
+                  Receipt #{selectedReceipt.id}
+                </DialogTitle>
+                <span className="text-sm font-medium bg-restaurant-success/10 text-restaurant-success py-1 px-2 rounded-full">
+                  {selectedReceipt.status}
+                </span>
+              </div>
+              <DialogDescription className="flex justify-between pt-2">
+                <div className="flex items-center text-sm">
+                  <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                  {selectedReceipt.date} | {selectedReceipt.time}
+                </div>
+                <div className="flex items-center text-sm">
+                  <CreditCard className="h-4 w-4 mr-1 text-muted-foreground" />
+                  {selectedReceipt.paymentMethod}
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="bg-muted/30 p-4 rounded-md">
+              <h3 className="font-medium mb-2">{selectedReceipt.table}</h3>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 text-sm font-medium">
+                  <div className="col-span-2">Item</div>
+                  <div className="text-right">Qty</div>
+                  <div className="text-right">Price</div>
+                </div>
+                
+                <Separator />
+                
+                {selectedReceipt.items.map((item, index) => (
+                  <div key={index} className="grid grid-cols-4 text-sm">
+                    <div className="col-span-2">{item.name}</div>
+                    <div className="text-right">{item.qty}x</div>
+                    <div className="text-right">₱{(item.price * item.qty).toFixed(2)}</div>
+                  </div>
+                ))}
+                
+                <Separator />
+                
+                <div className="grid grid-cols-4 text-sm">
+                  <div className="col-span-3 text-right font-medium">Subtotal:</div>
+                  <div className="text-right">₱{selectedReceipt.total.toFixed(2)}</div>
+                </div>
+                
+                <div className="grid grid-cols-4 text-sm">
+                  <div className="col-span-3 text-right font-medium">Tax (12%):</div>
+                  <div className="text-right">₱{(selectedReceipt.total * 0.12).toFixed(2)}</div>
+                </div>
+                
+                <div className="grid grid-cols-4 text-base font-bold">
+                  <div className="col-span-3 text-right">Total:</div>
+                  <div className="text-right">₱{selectedReceipt.total.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-2 text-xs text-muted-foreground">
+              <p>Receipt generated by Emiliano Restaurant POS System</p>
+              <p>For questions or concerns, please contact management.</p>
+            </div>
+            
+            <DialogFooter className="flex gap-2">
+              <Button variant="outline" onClick={() => setDetailsOpen(false)}>
+                <X className="h-4 w-4 mr-2" /> Close
+              </Button>
+              <Button onClick={() => handlePrint(selectedReceipt)}>
+                <Printer className="h-4 w-4 mr-2" /> Print Receipt
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Hidden div for printing */}
+      <div ref={printReceiptRef} style={{ display: 'none' }}></div>
+    </>
+  );
+};
+
+export default ReceiptsList;

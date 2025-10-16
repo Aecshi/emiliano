@@ -1,0 +1,28 @@
+/* Table Grid Layout */
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .table-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .table-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+/* Card hover effects */
+.table-grid .cursor-pointer {
+  transition: transform 0.2s ease-in-out;
+}
+
+.table-grid .cursor-pointer:hover {
+  transform: translateY(-2px);
+}

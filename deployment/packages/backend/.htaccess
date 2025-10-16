@@ -1,0 +1,15 @@
+# Enable rewriting
+RewriteEngine On
+
+# Set the base directory
+RewriteBase /
+
+# API requests should be passed to the API directory
+RewriteRule ^api(/.*)?$ api/index.php [QSA,L]
+
+# If the request is not for a real file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# For all other requests, serve the index.html file
+RewriteRule ^ index.html [QSA,L]

@@ -1,0 +1,91 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 342 65% 33%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 30 47% 84%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 37 72% 44%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 342 65% 33%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 342 65% 33%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 37 72% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 342 45% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 342 45% 25%;
+    --sidebar-ring: 37 72% 44%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.pos-container {
+  @apply w-full min-h-screen flex flex-col;
+}
+
+.pos-header {
+  @apply bg-restaurant-primary text-white py-3 px-4 flex items-center justify-between shadow-md;
+}
+
+.pos-grid {
+  @apply grid grid-cols-1 md:grid-cols-12 gap-4 flex-grow;
+}
+
+.pos-sidebar {
+  @apply md:col-span-2 bg-restaurant-primary text-white p-4;
+}
+
+.pos-content {
+  @apply md:col-span-10 p-4 bg-gray-50;
+}
+
+.table-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4;
+}
+
+.menu-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4;
+}
+
+.stats-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6;
+}

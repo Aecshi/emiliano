@@ -1,0 +1,619 @@
+import React, { useState } from 'react';
+import Header from '@/components/layout/Header';
+import Sidebar from '@/components/layout/Sidebar';
+import InventoryList from '@/components/inventory/InventoryList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Download, BarChart, FileIcon } from 'lucide-react';
+import { useToast } from "@/hooks/useToast";
+
+// Note: You'll need to install these packages via npm:
+// npm install docx file-saver @types/file-saver --save
+// @ts-ignore - Install the packages to resolve these errors
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, BorderStyle, HeadingLevel, TextRun, AlignmentType, Header as DocxHeader, Footer, PageNumber } from 'docx';
+// @ts-ignore - Install the packages to resolve these errors
+import { saveAs } from 'file-saver';
+
+// Sample inventory data for reports
+const inventoryItems = [
+  { 
+    id: 'INV001', 
+    name: 'Tomatoes', 
+    category: 'Vegetables',
+    quantity: 25, 
+    unit: 'kg', 
+    unitPrice: 45, 
+    totalValue: 1125,
+    status: 'In Stock',
+    lastUpdated: '2023-04-15'
+  },
+  { 
+    id: 'INV002', 
+    name: 'Chicken Breast', 
+    category: 'Meat',
+    quantity: 18, 
+    unit: 'kg', 
+    unitPrice: 280, 
+    totalValue: 5040,
+    status: 'In Stock',
+    lastUpdated: '2023-04-15'
+  },
+  { 
+    id: 'INV003', 
+    name: 'Basmati Rice', 
+    category: 'Grains',
+    quantity: 50, 
+    unit: 'kg', 
+    unitPrice: 72, 
+    totalValue: 3600,
+    status: 'In Stock',
+    lastUpdated: '2023-04-14'
+  },
+  { 
+    id: 'INV004', 
+    name: 'Olive Oil', 
+    category: 'Oils',
+    quantity: 12, 
+    unit: 'liter', 
+    unitPrice: 225, 
+    totalValue: 2700,
+    status: 'In Stock',
+    lastUpdated: '2023-04-12'
+  },
+  { 
+    id: 'INV005', 
+    name: 'Bell Peppers', 
+    category: 'Vegetables',
+    quantity: 8, 
+    unit: 'kg', 
+    unitPrice: 62.50, 
+    totalValue: 500,
+    status: 'Low Stock',
+    lastUpdated: '2023-04-15'
+  }
+];
+
+// Sample usage data for reports
+const usageData = [
+  { itemId: 'INV001', date: '2023-04-14', used: 5 },
+  { itemId: 'INV002', date: '2023-04-14', used: 3 },
+  { itemId: 'INV001', date: '2023-04-13', used: 4 },
+  { itemId: 'INV003', date: '2023-04-13', used: 8 },
+  { itemId: 'INV002', date: '2023-04-12', used: 2 },
+  { itemId: 'INV004', date: '2023-04-12', used: 1 },
+  { itemId: 'INV001', date: '2023-04-11', used: 3 },
+  { itemId: 'INV003', date: '2023-04-11', used: 5 },
+  { itemId: 'INV005', date: '2023-04-10', used: 2 },
+  { itemId: 'INV002', date: '2023-04-10', used: 4 }
+];
+
+const Inventory = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { toast } = useToast();
+  
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Old functions for CSV generation
+  const generateCSV = (data, headers) => {
+    const csvRows = [];
+    
+    // Add headers
+    csvRows.push(headers.join(','));
+    
+    // Add data rows
+    data.forEach(item => {
+      const values = headers.map(header => {
+        const value = item[header] || '';
+        return `"${value}"`;
+      });
+      csvRows.push(values.join(','));
+    });
+    
+    return csvRows.join('\n');
+  };
+  
+  const downloadCSV = (csvContent, fileName) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    
+    // Append to document, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Function to create a Word document with professional formatting
+  const createWordDocument = async (data, title, subtitle, summaryData) => {
+    try {
+      // Create a new document
+      const doc = new Document({
+        creator: "Emiliano Restaurant System",
+        title: title,
+        description: subtitle,
+        styles: {
+          paragraphStyles: [
+            {
+              id: "Heading1",
+              name: "Heading 1",
+              run: {
+                size: 36,
+                bold: true,
+                color: "2E5A88"
+              },
+              paragraph: {
+                spacing: {
+                  after: 200
+                }
+              }
+            },
+            {
+              id: "Heading2",
+              name: "Heading 2",
+              run: {
+                size: 28,
+                bold: true,
+                color: "2E5A88"
+              },
+              paragraph: {
+                spacing: {
+                  after: 120
+                }
+              }
+            },
+            {
+              id: "Subtitle",
+              name: "Subtitle",
+              run: {
+                size: 24,
+                italics: true,
+                color: "5C5C5C"
+              },
+              paragraph: {
+                spacing: {
+                  after: 200
+                }
+              }
+            },
+            {
+              id: "Normal",
+              name: "Normal",
+              run: {
+                size: 22
+              },
+              paragraph: {
+                spacing: {
+                  after: 120
+                }
+              }
+            }
+          ]
+        },
+        sections: [{
+          headers: {
+            default: new DocxHeader({
+              children: [
+                new Paragraph({
+                  text: "Emiliano Restaurant",
+                  alignment: AlignmentType.RIGHT,
+                  style: "Normal"
+                })
+              ]
+            })
+          },
+          footers: {
+            default: new Footer({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun("Page "),
+                    new PageNumber()
+                  ]
+                })
+              ]
+            })
+          },
+          children: [
+            // Title
+            new Paragraph({
+              text: title,
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.CENTER
+            }),
+            
+            // Subtitle
+            new Paragraph({
+              text: subtitle,
+              style: "Subtitle",
+              alignment: AlignmentType.CENTER
+            }),
+            
+            // Generation time
+            new Paragraph({
+              text: `Generated on: ${new Date().toLocaleString()}`,
+              alignment: AlignmentType.RIGHT,
+              style: "Normal"
+            }),
+            
+            // Executive Summary Section
+            new Paragraph({
+              text: "Executive Summary",
+              heading: HeadingLevel.HEADING_2,
+              spacing: {
+                before: 400,
+                after: 200
+              }
+            }),
+            
+            // Summary data table
+            new Table({
+              rows: Object.entries(summaryData).map(([key, value]) => {
+                return new TableRow({
+                  children: [
+                    new TableCell({
+                      width: {
+                        size: 4000,
+                        type: "dxa"
+                      },
+                      children: [new Paragraph({ text: key, style: "Normal" })],
+                      borders: {
+                        top: { style: BorderStyle.NONE },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" },
+                        left: { style: BorderStyle.NONE },
+                        right: { style: BorderStyle.NONE }
+                      }
+                    }),
+                    new TableCell({
+                      width: {
+                        size: 4000,
+                        type: "dxa"
+                      },
+                      children: [new Paragraph({ text: value.toString(), style: "Normal" })],
+                      borders: {
+                        top: { style: BorderStyle.NONE },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" },
+                        left: { style: BorderStyle.NONE },
+                        right: { style: BorderStyle.NONE }
+                      }
+                    })
+                  ]
+                });
+              })
+            }),
+            
+            // Data Section
+            new Paragraph({
+              text: "Detailed Data",
+              heading: HeadingLevel.HEADING_2,
+              spacing: {
+                before: 400,
+                after: 200
+              }
+            }),
+            
+            // Data table
+            new Table({
+              rows: [
+                // Header row
+                new TableRow({
+                  tableHeader: true,
+                  children: Object.keys(data[0]).map(header => {
+                    return new TableCell({
+                      children: [new Paragraph({ 
+                        text: header.charAt(0).toUpperCase() + header.slice(1).replace(/([A-Z])/g, ' $1'),
+                        style: "Normal",
+                        alignment: AlignmentType.CENTER
+                      })],
+                      borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: "000000" }
+                      },
+                      shading: {
+                        fill: "E0E0E0"
+                      }
+                    });
+                  })
+                }),
+                // Data rows
+                ...data.map(item => {
+                  return new TableRow({
+                    children: Object.values(item).map(value => {
+                      return new TableCell({
+                        children: [new Paragraph({ 
+                          text: value.toString(), 
+                          style: "Normal",
+                          alignment: AlignmentType.LEFT 
+                        })],
+                        borders: {
+                          top: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" },
+                          bottom: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" },
+                          left: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" },
+                          right: { style: BorderStyle.SINGLE, size: 1, color: "E0E0E0" }
+                        }
+                      });
+                    })
+                  });
+                })
+              ]
+            })
+          ]
+        }]
+      });
+      
+      // Generate the Word document as a blob
+      const buffer = await Packer.toBuffer(doc);
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      
+      // Save the document
+      saveAs(blob, `${title.toLowerCase().replace(/\s+/g, '_')}.docx`);
+      
+      return true;
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      return false;
+    }
+  };
+
+  // Generate current inventory report as Word document
+  const generateCurrentInventory = async () => {
+    // Generate Word document
+    const success = await createWordDocument(
+      inventoryItems,
+      "Current Inventory Report",
+      "Detailed listing of all inventory items",
+      {
+        "Total Items": inventoryItems.length,
+        "Total Value": `₱${inventoryItems.reduce((sum, item) => sum + item.totalValue, 0).toFixed(2)}`,
+        "Low Stock Items": inventoryItems.filter(item => item.status === 'Low Stock').length,
+        "Last Updated": new Date().toLocaleDateString(),
+        "Report Type": "Current Inventory"
+      }
+    );
+    
+    if (success) {
+      toast({
+        title: "Report Generated",
+        description: "Current Inventory Report has been downloaded as a Word document.",
+      });
+    } else {
+      toast({
+        title: "Report Generation Failed",
+        description: "There was an error generating the report. Please try again.",
+      });
+    }
+  };
+  
+  // Generate usage analysis report as Word document
+  const generateUsageAnalysis = async () => {
+    // Add item names to usage data
+    const usageWithNames = usageData.map(usage => {
+      const item = inventoryItems.find(item => item.id === usage.itemId);
+      return {
+        ...usage,
+        itemName: item ? item.name : 'Unknown',
+        category: item ? item.category : 'Unknown',
+        unit: item ? item.unit : 'units'
+      };
+    });
+    
+    // Calculate summary stats
+    const totalUsed = usageWithNames.reduce((sum, usage) => sum + usage.used, 0);
+    const uniqueItems = new Set(usageWithNames.map(usage => usage.itemId)).size;
+    const startDate = usageWithNames.reduce((earliest, usage) => 
+      new Date(usage.date) < new Date(earliest) ? usage.date : earliest, 
+      usageWithNames[0].date
+    );
+    const endDate = usageWithNames.reduce((latest, usage) => 
+      new Date(usage.date) > new Date(latest) ? usage.date : latest, 
+      usageWithNames[0].date
+    );
+    const dateRange = `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`;
+    
+    // Item with highest usage
+    const itemUsage = {};
+    usageWithNames.forEach(usage => {
+      if (!itemUsage[usage.itemName]) {
+        itemUsage[usage.itemName] = 0;
+      }
+      itemUsage[usage.itemName] += usage.used;
+    });
+    
+    const highestUsageItem = Object.entries(itemUsage)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))[0];
+    
+    // Create summary data
+    const summaryData = {
+      "Total Consumption": `${totalUsed} units`,
+      "Items Tracked": uniqueItems,
+      "Date Range": dateRange,
+      "Highest Consumption Item": `${highestUsageItem[0]} (${highestUsageItem[1]} units)`,
+      "Report Type": "Usage Analysis"
+    };
+    
+    // Generate Word document
+    const success = await createWordDocument(
+      usageWithNames,
+      "Inventory Usage Analysis Report",
+      "Detailed analysis of inventory consumption over time",
+      summaryData
+    );
+    
+    if (success) {
+      toast({
+        title: "Report Generated",
+        description: "Usage Analysis Report has been downloaded as a Word document.",
+      });
+    } else {
+      toast({
+        title: "Report Generation Failed",
+        description: "There was an error generating the report. Please try again.",
+      });
+    }
+  };
+
+  // Generate valuation report as Word document
+  const generateValuationReport = async () => {
+    // Add some additional calculated fields for the valuation report
+    const valuationData = inventoryItems.map(item => ({
+      ...item,
+      averageCost: (item.totalValue / item.quantity).toFixed(2),
+      inventoryAge: '15 days', // Mock data
+      reorderPoint: item.category === 'Vegetables' ? 15 : 10,
+      reorderStatus: item.quantity < (item.category === 'Vegetables' ? 15 : 10) ? 'Reorder' : 'OK'
+    }));
+    
+    // Calculate financial summary
+    const totalValue = valuationData.reduce((sum, item) => sum + item.totalValue, 0).toFixed(2);
+    const averageItemValue = (totalValue / valuationData.length).toFixed(2);
+    const itemsNeedingReorder = valuationData.filter(item => item.reorderStatus === 'Reorder').length;
+    
+    // Calculate value by category
+    const categoryValues = {};
+    valuationData.forEach(item => {
+      if (!categoryValues[item.category]) {
+        categoryValues[item.category] = 0;
+      }
+      categoryValues[item.category] += item.totalValue;
+    });
+    
+    const topCategory = Object.entries(categoryValues)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))[0];
+    
+    // Create summary data
+    const summaryData = {
+      "Total Inventory Value": `₱${totalValue}`,
+      "Average Item Value": `₱${averageItemValue}`,
+      "Items Needing Reorder": itemsNeedingReorder,
+      "Highest Value Category": `${topCategory[0]} (₱${(topCategory[1] as number).toFixed(2)})`,
+      "Report Type": "Financial Valuation",
+      "Report Date": new Date().toLocaleDateString()
+    };
+    
+    // Generate Word document
+    const success = await createWordDocument(
+      valuationData,
+      "Inventory Valuation Report",
+      "Financial analysis and valuation of current inventory",
+      summaryData
+    );
+    
+    if (success) {
+      toast({
+        title: "Report Generated",
+        description: "Inventory Valuation Report has been downloaded as a Word document.",
+      });
+    } else {
+      toast({
+        title: "Report Generation Failed",
+        description: "There was an error generating the report. Please try again.",
+      });
+    }
+  };
+
+  return (
+    <div className="pos-container">
+      <Header toggleSidebar={toggleSidebar} />
+
+      <div className="pos-grid relative">
+        <Sidebar isOpen={sidebarOpen} />
+
+        <div className="pos-content">
+          <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
+          
+          <Tabs defaultValue="items" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="items">Inventory Items</TabsTrigger>
+              <TabsTrigger value="reports">Inventory Reports</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="items">
+              <InventoryList />
+            </TabsContent>
+            
+            <TabsContent value="reports">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Inventory Value</CardTitle>
+                    <CardDescription>Total value of current inventory</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">₱12,967.50</div>
+                    <p className="text-sm text-muted-foreground">Updated today</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Low Stock Items</CardTitle>
+                    <CardDescription>Items below minimum threshold</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">2</div>
+                    <p className="text-sm text-muted-foreground">Need attention</p>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Generate Inventory Report</CardTitle>
+                  <CardDescription>Create detailed inventory reports for your records</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="cursor-pointer hover:bg-gray-50">
+                      <CardContent className="flex flex-col items-center justify-center p-6">
+                        <FileIcon className="h-5 w-5 text-restaurant-primary mb-2" />
+                        <h3 className="font-medium text-center">Current Inventory</h3>
+                        <p className="text-xs text-muted-foreground text-center mt-1">Complete inventory snapshot</p>
+                        <Button variant="outline" className="mt-4 w-full" onClick={generateCurrentInventory}>
+                          <FileIcon className="h-5 w-5 mr-2" /> Generate Word Doc
+                        </Button>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="cursor-pointer hover:bg-gray-50">
+                      <CardContent className="flex flex-col items-center justify-center p-6">
+                        <FileIcon className="h-5 w-5 text-restaurant-primary mb-2" />
+                        <h3 className="font-medium text-center">Usage Analysis</h3>
+                        <p className="text-xs text-muted-foreground text-center mt-1">Consumption over time</p>
+                        <Button variant="outline" className="mt-4 w-full" onClick={generateUsageAnalysis}>
+                          <FileIcon className="h-5 w-5 mr-2" /> Generate Word Doc
+                        </Button>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="cursor-pointer hover:bg-gray-50">
+                      <CardContent className="flex flex-col items-center justify-center p-6">
+                        <FileIcon className="h-5 w-5 text-restaurant-primary mb-2" />
+                        <h3 className="font-medium text-center">Valuation Report</h3>
+                        <p className="text-xs text-muted-foreground text-center mt-1">Financial inventory value</p>
+                        <Button variant="outline" className="mt-4 w-full" onClick={generateValuationReport}>
+                          <FileIcon className="h-5 w-5 mr-2" /> Generate Word Doc
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Inventory;
