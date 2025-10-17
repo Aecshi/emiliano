@@ -1,27 +1,23 @@
 // Customer Menu API client
 
-// API configuration for PHP backend - try different URLs
-const POSSIBLE_API_URLS = [
-  'http://localhost/api',      // XAMPP default
-  'http://127.0.0.1/api',      // Alternative localhost
-  'http://localhost:80/api',   // Explicit port 80
-  'http://127.0.0.1:80/api'    // Alternative with port
-];
+// API configuration for PHP backend
+const API_BASE_URL = "https://emiliano.great-site.net/api";
 
-let API_BASE_URL = POSSIBLE_API_URLS[0];
+// For backwards compatibility
+const POSSIBLE_API_URLS = [
+  API_BASE_URL
+];
 
 /**
  * Generic API fetch function with error handling
  */
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // Try to find working API URL if current one fails
+  // Use the production API URL
   let lastError: Error | null = null;
+  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  console.log(`🔄 Customer API Request: ${fullUrl}`);
   
-  for (const testUrl of [API_BASE_URL, ...POSSIBLE_API_URLS.filter(url => url !== API_BASE_URL)]) {
-    const fullUrl = `${testUrl}${endpoint}`;
-    console.log(`🔄 Customer API Request: ${fullUrl}`);
-    
-    try {
+  try {
       const response = await fetch(fullUrl, {
         ...options,
         mode: 'cors', // Explicitly set CORS mode
@@ -48,27 +44,15 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       const data = await response.json();
       console.log(`✅ Customer API Success:`, data);
       
-      // Update the working API URL if we found a different one
-      if (testUrl !== API_BASE_URL) {
-        console.log(`🔄 Switching to working API URL: ${testUrl}`);
-        API_BASE_URL = testUrl;
-      }
-      
       return data as T;
       
     } catch (error) {
       console.error(`❌ Customer API request failed for ${fullUrl}:`, error);
       lastError = error as Error;
-      
-      // If this was our primary URL, try the next one
-      if (testUrl === API_BASE_URL) {
-        continue;
-      }
     }
-  }
   
-  // If we get here, all URLs failed
-  console.error('❌ All API URLs failed');
+  // If we get here, the API request failed
+  console.error('❌ API request failed');
   throw lastError || new Error('All API requests failed');
 }
 
