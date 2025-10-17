@@ -12,7 +12,7 @@ const POSSIBLE_API_URLS = [
  * Generic API fetch function with error handling
  */
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // Use the production API URL
+  // PRODUCTION MODE: Only use the production URL
   let lastError: Error | null = null;
   const fullUrl = `${API_BASE_URL}${endpoint}`;
   console.log(`🔄 Customer API Request: ${fullUrl}`);

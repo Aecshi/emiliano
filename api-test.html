@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test</h1>
+    <p>Click the buttons below to test different API endpoints:</p>
+    
+    <div>
+        <button onclick="testEndpoint('https://emiliano.great-site.net/api/test-cors')">Test CORS Endpoint</button>
+        <button onclick="testEndpoint('https://emiliano.great-site.net/api/dashboard')">Test Dashboard Endpoint</button>
+        <button onclick="testEndpoint('https://emiliano.great-site.net/api/tables')">Test Tables Endpoint</button>
+        <button onclick="testEndpoint('https://emiliano.great-site.net/api/menu')">Test Menu Endpoint</button>
+    </div>
+    
+    <h2>Results:</h2>
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        async function testEndpoint(url) {
+            const resultElement = document.createElement('div');
+            resultElement.innerHTML = `<h3>Testing: ${url}</h3>`;
+            resultsDiv.prepend(resultElement);
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const endTime = performance.now();
+                
+                const responseTime = (endTime - startTime).toFixed(2);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultElement.innerHTML += `
+                        <p class="success">Success! Response time: ${responseTime}ms</p>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultElement.innerHTML += `
+                        <p class="error">Error! Response time: ${responseTime}ms</p>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <pre>${await response.text()}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultElement.innerHTML += `
+                    <p class="error">Failed to fetch: ${error.message}</p>
+                    <p>This could be due to:</p>
+                    <ul>
+                        <li>The API server is down</li>
+                        <li>CORS is not properly configured</li>
+                        <li>Network connectivity issues</li>
+                        <li>The URL is incorrect</li>
+                    </ul>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

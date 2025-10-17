@@ -49,14 +49,13 @@ const findWorkingAPIURL = async (): Promise<string> => {
  * Generic API fetch function with error handling
  */
 export async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // Try to find working API URL if current one fails
+  // PRODUCTION MODE: Only use the production URL
   let lastError: Error | null = null;
   
-  for (const testUrl of [API_BASE_URL, ...DEV_API_URLS.filter(url => url !== API_BASE_URL)]) {
-    const fullUrl = `${testUrl}${endpoint}`;
-    console.log(`🔄 API Request: ${fullUrl}`);
-    
-    try {
+  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  console.log(`🔄 API Request: ${fullUrl}`);
+  
+  try {
       const response = await fetch(fullUrl, {
         ...options,
         mode: 'cors', // Explicitly set CORS mode
@@ -84,31 +83,19 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
       console.log(`✅ API Success:`, data);
       debugAPI(endpoint, data);
       
-      // Update the working API URL if we found a different one
-      if (testUrl !== API_BASE_URL) {
-        console.log(`🔄 Switching to working API URL: ${testUrl}`);
-        API_BASE_URL = testUrl;
-      }
-      
       return data as T;
       
     } catch (error) {
       console.error(`❌ API request failed for ${fullUrl}:`, error);
       lastError = error as Error;
-      
-      // If this was our primary URL, try the next one
-      if (testUrl === API_BASE_URL) {
-        continue;
-      }
     }
-  }
   
-  // If we get here, all URLs failed
-  console.error('❌ All API URLs failed');
+  // If we get here, the API request failed
+  console.error('❌ API request failed');
   
   // More specific error messages
   if (lastError && lastError instanceof TypeError && lastError.message.includes('fetch')) {
-    throw new Error(`Cannot connect to API server. Tried: ${DEV_API_URLS.join(', ')}. Make sure XAMPP is running.`);
+    throw new Error(`Cannot connect to API server: ${API_BASE_URL}. Please check your internet connection and try again.`);
   }
   
   throw lastError || new Error('All API requests failed');
@@ -386,17 +373,8 @@ export const testAPIConnection = async () => {
   console.log('📍 Current API URL:', API_BASE_URL);
   
   try {
-    // Test 0: Find working API URL (only in development)
-    if (!import.meta.env.PROD) {
-      console.log('🔍 Step 0: Finding working API URL...');
-      try {
-        const workingUrl = await findWorkingAPIURL();
-        API_BASE_URL = workingUrl;
-        console.log('✅ Working API URL found and set:', workingUrl);
-      } catch (urlError) {
-        console.warn('⚠️ Could not find working URL automatically, proceeding with current URL');
-      }
-    }
+    // Skip finding working URL - we're using production URL only
+    console.log('🔍 Using production API URL:', API_BASE_URL);
     
     // Test 1: Basic connectivity
     console.log('📡 Test 1: Testing basic API connectivity...');
