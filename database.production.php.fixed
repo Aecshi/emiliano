@@ -1,11 +1,11 @@
 <?php
 // Production database configuration
 class Database {
-    // Update these with your InfinityFree database credentials
-    private $host = "sql306.infinityfree.com"; // Change this to your actual InfinityFree MySQL host
-    private $db_name = "if0_40183863_XXX"; // Change this to your actual database name
-    private $username = "if0_40183863"; // Change this to your actual database username
-    private $password = "y0isdeLGlFBSgd"; // Change this to your actual database password
+    // Updated with correct database name
+    private $host = "sql306.infinityfree.com";
+    private $db_name = "if0_40183863_restaurant_pos"; // CHANGE THIS to your actual database name
+    private $username = "if0_40183863";
+    private $password = "y0isdeLGlFBSgd";
     private $conn;
     
     public function getConnection() {
@@ -16,6 +16,9 @@ class Database {
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch(PDOException $exception) {
+            // Log database errors to a file
+            $error_log = "DB Error: " . date('Y-m-d H:i:s') . " - " . $exception->getMessage() . "\n";
+            file_put_contents('db_error_log.txt', $error_log, FILE_APPEND);
             echo "Connection error: " . $exception->getMessage();
         }
         
@@ -25,14 +28,20 @@ class Database {
 
 // CORS headers for production environment
 function setCorsHeaders() {
+    // Log CORS info for debugging
+    $log = "CORS Request: " . date('Y-m-d H:i:s') . "\n";
+    $log .= "Origin: " . ($_SERVER['HTTP_ORIGIN'] ?? 'not set') . "\n";
+    $log .= "User-Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'not set') . "\n";
+    file_put_contents('cors_log.txt', $log, FILE_APPEND);
+    
     // Set CORS headers only if not already sent
     if (!headers_sent()) {
-        // Allow your Netlify domain and local development domains
+        // Allow your Netlify domain and local development domains - FIXED by adding https://
         $allowedOrigins = [
             'https://charming-gingersnap-85c466.netlify.app', // Your Netlify domain
-            'https://emiliano-eats.netlify.app', // Alternative Netlify domain
-            'https://emiliano-restaurant.netlify.app', // Another possible Netlify domain
-            'https://main--emiliano-eats.netlify.app', // Netlify branch subdomain
+            'https://emiliano-eats.netlify.app',
+            'https://emiliano-restaurant.netlify.app',
+            'https://main--emiliano-eats.netlify.app',
             'http://localhost:3000',
             'http://localhost:5173',
             'http://localhost:8080',
@@ -61,15 +70,19 @@ function setCorsHeaders() {
             // For mobile devices or when origin is not set, allow all origins
             header("Access-Control-Allow-Origin: *");
         } else {
-            // For other origins, still allow but log for debugging
+            // For debugging purposes, allow all origins but log them
             header("Access-Control-Allow-Origin: *");
-            // You could log unknown origins here if needed
+            file_put_contents('unknown_origin.txt', "Unknown origin: $origin at " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
         }
         
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
         header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
         header("Access-Control-Allow-Credentials: true");
-        header("Content-Type: application/json; charset=UTF-8");
+        
+        // Only set content-type for non-OPTIONS requests
+        if ($_SERVER['REQUEST_METHOD'] !== 'OPTIONS') {
+            header("Content-Type: application/json; charset=UTF-8");
+        }
     }
     
     // Handle preflight requests
@@ -89,6 +102,8 @@ function jsonResponse($data, $status_code = 200) {
 
 // Helper function to handle errors
 function errorResponse($message, $status_code = 500) {
+    // Log errors
+    file_put_contents('api_errors.txt', date('Y-m-d H:i:s') . " - $message\n", FILE_APPEND);
     jsonResponse(['error' => $message], $status_code);
 }
 ?>
