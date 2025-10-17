@@ -1,9 +1,9 @@
 // Customer Menu API client
 
-// API configuration for PHP backend
+// API configuration for PHP backend - PRODUCTION MODE ONLY
 const API_BASE_URL = "https://emiliano.great-site.net/api";
 
-// For backwards compatibility
+// For backwards compatibility - only use production URL
 const POSSIBLE_API_URLS = [
   API_BASE_URL
 ];

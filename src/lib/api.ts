@@ -9,8 +9,11 @@ const DEV_API_URLS = [
   'http://127.0.0.1:80/api'    // Alternative with port
 ];
 
-// Use production URL in production environment, otherwise try development URLs
-export let API_BASE_URL = import.meta.env.PROD ? PRODUCTION_API_URL : DEV_API_URLS[0];
+// FORCE PRODUCTION MODE: Always use production URL
+export let API_BASE_URL = PRODUCTION_API_URL;
+
+// Comment out the conditional logic for now
+// export let API_BASE_URL = import.meta.env.PROD ? PRODUCTION_API_URL : DEV_API_URLS[0];
 
 // Debug function to log API calls
 const debugAPI = (endpoint: string, response: any) => {

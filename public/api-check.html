@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API URL Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #8b0000;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API URL Check</h1>
+    <p>This page checks which API URL is being used by your application.</p>
+    
+    <div>
+        <button id="checkApiBtn">Check API URL</button>
+        <button id="testLocalBtn">Test Local API</button>
+        <button id="testProductionBtn">Test Production API</button>
+        <button id="clearBtn">Clear Results</button>
+    </div>
+    
+    <h2>Results:</h2>
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        const checkApiBtn = document.getElementById('checkApiBtn');
+        const testLocalBtn = document.getElementById('testLocalBtn');
+        const testProductionBtn = document.getElementById('testProductionBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        // Production and development API URLs
+        const PRODUCTION_API_URL = 'https://emiliano.great-site.net/api';
+        const LOCAL_API_URL = 'http://localhost/api';
+        
+        function addResult(title, data, isError = false) {
+            const resultElement = document.createElement('div');
+            resultElement.innerHTML = `
+                <h3 class="${isError ? 'error' : 'success'}">${title}</h3>
+                <pre>${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}</pre>
+            `;
+            resultsDiv.prepend(resultElement);
+        }
+        
+        async function testApi(apiUrl, endpoint = '/test-cors') {
+            try {
+                const response = await fetch(`${apiUrl}${endpoint}`);
+                const data = await response.json();
+                return {
+                    success: true,
+                    data: data,
+                    status: response.status
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+        
+        checkApiBtn.addEventListener('click', async () => {
+            // First try to detect if we're in production or development
+            const isProd = window.location.hostname !== 'localhost' && 
+                          !window.location.hostname.includes('127.0.0.1') &&
+                          !window.location.hostname.includes('192.168.');
+            
+            addResult('Environment Detection', {
+                hostname: window.location.hostname,
+                isProd: isProd,
+                expectedApiUrl: isProd ? PRODUCTION_API_URL : LOCAL_API_URL
+            });
+            
+            // Try both APIs to see which one works
+            const prodResult = await testApi(PRODUCTION_API_URL);
+            const localResult = await testApi(LOCAL_API_URL);
+            
+            addResult('Production API Test', prodResult);
+            addResult('Local API Test', localResult);
+            
+            // Determine which one is actually being used
+            const workingApi = prodResult.success ? 'Production API' : 
+                              localResult.success ? 'Local API' : 'None';
+            
+            addResult('API in Use', {
+                working: workingApi,
+                shouldBe: isProd ? 'Production API' : 'Local API',
+                correct: (isProd && prodResult.success) || (!isProd && localResult.success)
+            });
+        });
+        
+        testLocalBtn.addEventListener('click', async () => {
+            const result = await testApi(LOCAL_API_URL);
+            addResult('Local API Test', result);
+        });
+        
+        testProductionBtn.addEventListener('click', async () => {
+            const result = await testApi(PRODUCTION_API_URL);
+            addResult('Production API Test', result);
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            resultsDiv.innerHTML = '';
+        });
+        
+        // Display environment info
+        addResult('Environment Info', {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            hostname: window.location.hostname,
+            protocol: window.location.protocol,
+            pathname: window.location.pathname,
+            href: window.location.href
+        });
+    </script>
+</body>
+</html>

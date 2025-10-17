@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emiliano API Mobile Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #8b0000;
+        }
+        button {
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Emiliano API Mobile Test</h1>
+    <p>This page tests API connectivity from mobile devices.</p>
+    
+    <div>
+        <button onclick="testBasicAPI()">Test Basic API</button>
+        <button onclick="testMobileAPI()">Test Mobile API</button>
+        <button onclick="testDashboardAPI()">Test Dashboard API</button>
+        <button onclick="testMenuAPI()">Test Menu API</button>
+    </div>
+    
+    <h2>Results:</h2>
+    <div id="results"></div>
+    
+    <script>
+        const apiBaseUrl = 'https://emiliano.great-site.net/api';
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(title, data, isError = false) {
+            const resultElement = document.createElement('div');
+            resultElement.innerHTML = `
+                <h3 class="${isError ? 'error' : 'success'}">${title}</h3>
+                <pre>${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}</pre>
+            `;
+            resultsDiv.prepend(resultElement);
+        }
+        
+        async function testBasicAPI() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/test-cors`);
+                const data = await response.json();
+                addResult('Basic API Test Success', data);
+            } catch (error) {
+                addResult('Basic API Test Failed', error.message, true);
+            }
+        }
+        
+        async function testMobileAPI() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/test-mobile.php`);
+                const data = await response.json();
+                addResult('Mobile API Test Success', data);
+            } catch (error) {
+                addResult('Mobile API Test Failed', error.message, true);
+            }
+        }
+        
+        async function testDashboardAPI() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/dashboard`);
+                const data = await response.json();
+                addResult('Dashboard API Test Success', data);
+            } catch (error) {
+                addResult('Dashboard API Test Failed', error.message, true);
+            }
+        }
+        
+        async function testMenuAPI() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/menu`);
+                const data = await response.json();
+                addResult('Menu API Test Success', {
+                    categories: data.categories ? data.categories.length : 0,
+                    items: data.items ? data.items.length : 0,
+                    sample: data.items && data.items.length > 0 ? data.items[0] : null
+                });
+            } catch (error) {
+                addResult('Menu API Test Failed', error.message, true);
+            }
+        }
+        
+        // Display environment info
+        addResult('Environment Info', {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            vendor: navigator.vendor,
+            language: navigator.language,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+            devicePixelRatio: window.devicePixelRatio
+        });
+    </script>
+</body>
+</html>

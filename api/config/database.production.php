@@ -29,7 +29,10 @@ function setCorsHeaders() {
     if (!headers_sent()) {
         // Allow your Netlify domain and local development domains
         $allowedOrigins = [
-            'https://your-netlify-app.netlify.app', // Change this to your actual Netlify domain
+            'https://emiliano.netlify.app', // Your Netlify domain
+            'https://emiliano-eats.netlify.app', // Alternative Netlify domain
+            'https://emiliano-restaurant.netlify.app', // Another possible Netlify domain
+            'https://main--emiliano-eats.netlify.app', // Netlify branch subdomain
             'http://localhost:3000',
             'http://localhost:5173',
             'http://localhost:8080',
@@ -46,12 +49,21 @@ function setCorsHeaders() {
         ];
         
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        
+        // Check if this is a mobile device
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', strtolower($userAgent));
+        
         if (in_array($origin, $allowedOrigins)) {
+            // For known origins, set the specific origin
             header("Access-Control-Allow-Origin: " . $origin);
-        } else {
-            // For production, it's better to be specific about allowed origins
-            // But for testing, we'll allow all
+        } else if ($isMobile || empty($origin)) {
+            // For mobile devices or when origin is not set, allow all origins
             header("Access-Control-Allow-Origin: *");
+        } else {
+            // For other origins, still allow but log for debugging
+            header("Access-Control-Allow-Origin: *");
+            // You could log unknown origins here if needed
         }
         
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
