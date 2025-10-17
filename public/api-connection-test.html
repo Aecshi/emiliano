@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <p>Use this page to test the connection between your frontend and backend.</p>
+    
+    <div>
+        <h2>Backend URL</h2>
+        <input type="text" id="apiUrl" value="https://emiliano.great-site.net/api" style="width: 300px;">
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button onclick="testCors()">Test CORS</button>
+        <button onclick="testTables()">Test Tables API</button>
+        <button onclick="testMenu()">Test Menu API</button>
+        <button onclick="testDashboard()">Test Dashboard API</button>
+    </div>
+    
+    <div class="result" id="result">Results will appear here...</div>
+    
+    <script>
+        // Display results in the result div
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            resultDiv.className = isError ? 'result error' : 'result success';
+        }
+        
+        // Get the API URL from the input field
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value;
+        }
+        
+        // Generic API request function
+        async function apiRequest(endpoint) {
+            const apiUrl = getApiUrl();
+            try {
+                showResult(`Connecting to ${apiUrl}${endpoint}...`);
+                
+                const response = await fetch(`${apiUrl}${endpoint}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showResult(data);
+                return data;
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+                throw error;
+            }
+        }
+        
+        // Test CORS setup
+        async function testCors() {
+            try {
+                await apiRequest('/test-cors');
+            } catch (error) {
+                console.error('CORS test failed:', error);
+            }
+        }
+        
+        // Test Tables API
+        async function testTables() {
+            try {
+                await apiRequest('/tables');
+            } catch (error) {
+                console.error('Tables API test failed:', error);
+            }
+        }
+        
+        // Test Menu API
+        async function testMenu() {
+            try {
+                await apiRequest('/menu');
+            } catch (error) {
+                console.error('Menu API test failed:', error);
+            }
+        }
+        
+        // Test Dashboard API
+        async function testDashboard() {
+            try {
+                await apiRequest('/dashboard');
+            } catch (error) {
+                console.error('Dashboard API test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>
