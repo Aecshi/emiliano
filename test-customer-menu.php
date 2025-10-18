@@ -2,7 +2,7 @@
 // Test script to check customer menu API endpoint
 header('Content-Type: application/json');
 
-$apiUrl = 'http://localhost/api/customer-menu';
+$apiUrl = 'https://emiliano.great-site.net/api/customer-menu';
 $response = file_get_contents($apiUrl);
 
 if ($response === false) {

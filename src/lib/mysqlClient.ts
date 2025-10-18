@@ -2,7 +2,7 @@
 // Instead of direct database connections, it makes API calls to the server
 
 // Define the base API URL
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://emiliano.great-site.net/api';
 
 /**
  * Makes a fetch request to the API

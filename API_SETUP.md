@@ -48,8 +48,9 @@ private $password = "";                 // Default XAMPP MySQL password (empty)
 In `src/lib/api.ts`, update the API base URL if needed:
 
 ```typescript
-const API_BASE_URL = "http://localhost/api"; // Default XAMPP Apache port
-// OR if using different port:
+const API_BASE_URL = "https://emiliano.great-site.net/api"; // Production API URL
+// OR for local development:
+// const API_BASE_URL = "http://localhost/api"; // Default XAMPP Apache port
 // const API_BASE_URL = 'http://localhost:8080/api';
 ```
 
@@ -68,7 +69,7 @@ const API_BASE_URL = "http://localhost/api"; // Default XAMPP Apache port
 Open your browser and go to:
 
 ```
-http://localhost/api/test.php
+https://emiliano.great-site.net/api/test.php
 ```
 
 This will check:
@@ -83,7 +84,7 @@ This will check:
 **Test 1: API Status**
 
 ```
-http://localhost/api/
+https://emiliano.great-site.net/api/
 ```
 
 Should return:
@@ -95,7 +96,7 @@ Should return:
 **Test 2: Dashboard Stats**
 
 ```
-http://localhost/api/dashboard
+https://emiliano.great-site.net/api/dashboard
 ```
 
 Should return dashboard statistics from your database.
@@ -103,7 +104,7 @@ Should return dashboard statistics from your database.
 **Test 3: Tables Data**
 
 ```
-http://localhost/api/tables
+https://emiliano.great-site.net/api/tables
 ```
 
 Should return all tables from your `restaurant_tables` table.
@@ -138,7 +139,7 @@ Should return all tables from your `restaurant_tables` table.
 For development, you can run both servers:
 
 1. React frontend: `npm run dev` (usually http://localhost:5173)
-2. XAMPP Apache serving PHP API: http://localhost/api
+2. Production API: https://emiliano.great-site.net/api
 
 ## Next Steps
 

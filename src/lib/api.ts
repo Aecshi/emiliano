@@ -1,12 +1,12 @@
 // API configuration for PHP backend
 const PRODUCTION_API_URL = 'https://emiliano.great-site.net/api';
 
-// Development API URLs to try
+// Development API URLs to try (all pointing to production)
 const DEV_API_URLS = [
-  'http://localhost/api',      // XAMPP default
-  'http://127.0.0.1/api',      // Alternative localhost
-  'http://localhost:80/api',   // Explicit port 80
-  'http://127.0.0.1:80/api'    // Alternative with port
+  'https://emiliano.great-site.net/api',      // Production API
+  'https://emiliano.great-site.net/api',      // Production API
+  'https://emiliano.great-site.net/api',      // Production API
+  'https://emiliano.great-site.net/api'       // Production API
 ];
 
 // FORCE PRODUCTION MODE: Always use production URL
@@ -409,7 +409,7 @@ export const testAPIConnection = async () => {
     console.error('❌ API test failed:', error);
     console.log('🔧 Troubleshooting tips:');
     console.log('1. Make sure XAMPP Apache is running');
-    console.log('2. Try accessing http://localhost/api/test-cors in your browser');
+    console.log('2. Try accessing https://emiliano.great-site.net/api/test-cors in your browser');
     console.log('3. Check if there are any firewall/antivirus blocking connections');
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
