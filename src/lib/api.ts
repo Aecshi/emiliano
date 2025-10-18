@@ -1,5 +1,5 @@
 // API configuration for PHP backend
-const PRODUCTION_API_URL = 'https://emiliano.great-site.net/api';
+const PRODUCTION_API_URL = 'https://emiliano.great-site.net/api/menu.php';
 
 // Development API URLs to try (all pointing to production)
 const DEV_API_URLS = [
